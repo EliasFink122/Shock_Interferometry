@@ -12,8 +12,8 @@ Methods:
         convert speeds to Doppler shifted wavelengths
     interferogram:
         generate interferogram from wavelength
-    plot_trace:
-        get trace of interferograms from wavelengths
+    trace_animation:
+        get animation of interferograms from wavelengths
 """
 import numpy as np
 from scipy.constants import speed_of_light as c
@@ -63,25 +63,15 @@ def interferogram(wavelength: float, opt_depth = 1) -> np.ndarray:
     period = wavelength/(2*opt_depth*np.sin(np.pi/10))
     xs = np.linspace(-5*period, 5*period, 1000)
     fringes = np.square(np.sin(xs*2*np.pi/period))
-
-    fringes_xy = np.zeros((len(xs), len(xs)))
-    for i, _ in enumerate(fringes_xy):
-        for j, _ in enumerate(fringes_xy):
-            fringes_xy[i, j] = fringes[i]
-
-    plt.cla()
-    plt.imshow(fringes_xy, cmap = 'Greys')
-
     return fringes
 
-def plot_trace(wavelengths: np.ndarray):
+def trace_animation(wavelengths: np.ndarray):
     '''
-    Plot trace of interferograms.
+    Animate trace of interferograms.
 
     Args:
         wavelengths: wavelength array
     '''
-
     plt.rcParams['animation.html'] = "jshtml"
     plt.rcParams['figure.dpi'] = 500
     plt.rcParams['animation.embed_limit'] = 20
@@ -92,14 +82,39 @@ def plot_trace(wavelengths: np.ndarray):
         '''
         Animation
         '''
-        interferogram(wavelengths[i])
+        fringes = interferogram(wavelengths[i])
+        fringes_xy = np.zeros((len(fringes), len(fringes)))
+        for k, _ in enumerate(fringes_xy):
+            for j, _ in enumerate(fringes_xy):
+                fringes_xy[k, j] = fringes[k]
+
+        plt.cla()
+        plt.imshow(fringes_xy, cmap = 'Greys')
 
     anim = animation.FuncAnimation(fig, animate, frames=len(wavelengths))
     writervideo = animation.PillowWriter(fps=10)
     anim.save('trace.gif', writer=writervideo)
     plt.close()
 
+def plot_trace(times: np.ndarray, wavelengths: np.ndarray):
+    '''
+    Plot trace of interferograms.
+
+    Args:
+        times: times of speed measurements
+        wavelengths: wavelength array
+    '''
+    plt.figure()
+    for i, wavelength in enumerate(wavelengths):
+        fringes = interferogram(wavelength)
+        for fringe in fringes:
+            plt.plot(times[i], fringe)
+    plt.xlabel("Time")
+    plt.ylabel("Interferogram")
+    plt.show()
+
 if __name__ == "__main__":
     time_arr, speed_arr = read_in()
     wavelength_arr = convert_doppler(5.5e-7, speed_arr)
-    plot_trace(wavelength_arr)
+    trace_animation(wavelength_arr)
+    #plot_trace(time_arr, wavelength_arr)
