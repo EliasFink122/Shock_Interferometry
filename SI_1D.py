@@ -18,7 +18,20 @@ Methods:
 import numpy as np
 from scipy.constants import speed_of_light as c
 import matplotlib.pyplot as plt
-from matplotlib import animation
+
+def gse(arr: list, num = 10) -> list:
+    '''
+    Get evenly spaced out elements from array:
+
+    Args:
+        arr: input array
+        num: number of elements
+
+    Returns:
+        elements
+    '''
+    out = arr[np.round(np.linspace(0, len(arr)-1, num)).astype(int)]
+    return out
 
 def read_in(path = "data.csv") -> np.array:
     '''
@@ -61,9 +74,12 @@ def interferogram(wavelength: float, opt_depth = 1) -> np.ndarray:
         positions of fringes
     '''
     period = wavelength/(2*opt_depth*np.sin(np.pi/10))
-    xs = np.linspace(-5*period, 5*period, 1000)
+
+    plot_range = 1e-5
+    xs = np.linspace(0, plot_range, 1000)
     fringes = np.square(np.sin(xs*2*np.pi/period))
-    return fringes
+
+    return xs, fringes
 
 def trace_animation(wavelengths: np.ndarray):
     '''
@@ -72,29 +88,24 @@ def trace_animation(wavelengths: np.ndarray):
     Args:
         wavelengths: wavelength array
     '''
-    plt.rcParams['animation.html'] = "jshtml"
-    plt.rcParams['figure.dpi'] = 500
-    plt.rcParams['animation.embed_limit'] = 20
-    plt.ion()
-    fig, _ = plt.subplots()
+    plt.figure()
+    plt.title("Interferogram")
 
-    def animate(i):
-        '''
-        Animation
-        '''
-        fringes = interferogram(wavelengths[i])
+    for wavelength in wavelengths:
+        xs, fringes = interferogram(wavelength)
         fringes_xy = np.zeros((len(fringes), len(fringes)))
         for k, _ in enumerate(fringes_xy):
             for j, _ in enumerate(fringes_xy):
                 fringes_xy[k, j] = fringes[k]
+        ticks = [f"{tick*1e9:.0f}" for tick in gse(xs)]
+        plt.xticks(gse(np.arange(len(fringes_xy))), ticks)
+        plt.yticks(gse(np.arange(len(fringes_xy))), ticks)
+        plt.xlabel("x [nm]")
+        plt.ylabel("y [nm]")
+        plt.imshow(fringes_xy, cmap = 'Greys', animated = True, origin = 'lower')
+        plt.pause(0.5)
 
-        plt.cla()
-        plt.imshow(fringes_xy, cmap = 'Greys')
-
-    anim = animation.FuncAnimation(fig, animate, frames=len(wavelengths))
-    writervideo = animation.PillowWriter(fps=10)
-    anim.save('trace.gif', writer=writervideo)
-    plt.close()
+    plt.show()
 
 def plot_trace(times: np.ndarray, wavelengths: np.ndarray):
     '''
@@ -105,16 +116,25 @@ def plot_trace(times: np.ndarray, wavelengths: np.ndarray):
         wavelengths: wavelength array
     '''
     plt.figure()
-    for i, wavelength in enumerate(wavelengths):
-        fringes = interferogram(wavelength)
-        for fringe in fringes:
-            plt.plot(times[i], fringe)
-    plt.xlabel("Time")
-    plt.ylabel("Interferogram")
+    plt.title("Interferogram trace")
+    xs, _ = interferogram(wavelengths[0])
+    plot_arr = np.zeros((len(xs), len(times)*100))
+    for k, wavelength in enumerate(wavelengths):
+        _, fringes = interferogram(wavelength)
+        for i, _ in enumerate(plot_arr):
+            for j in range(100):
+                plot_arr[i, 100*k + j] = fringes[i]
+    plt.imshow(plot_arr, cmap = 'Greys', origin = 'lower')
+    ticks_x = [f"{tick:.0f}" for tick in gse(times)]
+    ticks_y = [f"{tick*1e9:.0f}" for tick in gse(xs)]
+    plt.xticks(gse(np.arange(len(plot_arr[0]))), ticks_x)
+    plt.yticks(gse(np.arange(len(plot_arr))), ticks_y)
+    plt.xlabel("Time [s]")
+    plt.ylabel("Fringe positions [nm]")
     plt.show()
 
 if __name__ == "__main__":
     time_arr, speed_arr = read_in()
     wavelength_arr = convert_doppler(5.5e-7, speed_arr)
-    trace_animation(wavelength_arr)
-    #plot_trace(time_arr, wavelength_arr)
+    # trace_animation(wavelength_arr)
+    plot_trace(time_arr, wavelength_arr)
