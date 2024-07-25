@@ -43,7 +43,7 @@ def read_in(path = "data.csv") -> np.array:
     Returns:
         data in numpy array
     '''
-    data = np.loadtxt(path, delimiter=',', skiprows=1)
+    data = np.loadtxt(path)
     return data[:, 0], data[:, 1]
 
 def convert_doppler(wavelength: float, speeds: np.ndarray) -> np.ndarray:
@@ -103,7 +103,7 @@ def trace_animation(wavelengths: np.ndarray):
         plt.xlabel("x [nm]")
         plt.ylabel("y [nm]")
         plt.imshow(fringes_xy, cmap = 'Greys', animated = True, origin = 'lower')
-        plt.pause(0.5)
+        plt.pause(0.1)
 
     plt.show()
 
@@ -118,12 +118,12 @@ def plot_trace(times: np.ndarray, wavelengths: np.ndarray):
     plt.figure()
     plt.title("Interferogram trace")
     xs, _ = interferogram(wavelengths[0])
-    plot_arr = np.zeros((len(xs), len(times)*100))
+    plot_arr = np.zeros((len(xs), len(times)*int(2000/len(times))))
     for k, wavelength in enumerate(wavelengths):
         _, fringes = interferogram(wavelength)
         for i, _ in enumerate(plot_arr):
-            for j in range(100):
-                plot_arr[i, 100*k + j] = fringes[i]
+            for j in range(int(2000/len(times))):
+                plot_arr[i, int(2000/len(times))*k + j] = fringes[i]
     plt.imshow(plot_arr, cmap = 'Greys', origin = 'lower')
     ticks_x = [f"{tick:.0f}" for tick in gse(times)]
     ticks_y = [f"{tick*1e9:.0f}" for tick in gse(xs)]
