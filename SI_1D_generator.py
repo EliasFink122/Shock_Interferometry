@@ -25,7 +25,7 @@ def profile(num: int, max_speed: float) -> np.ndarray:
     noise = (np.random.rand(num) - 0.5) * max_speed/5
     return np.abs(speeds + noise)
 
-def generate_data(num: int, max_speed: float):
+def generate_data(num: int, max_speed: float, final_time: float = None):
     '''
     Save data in file.
 
@@ -33,13 +33,19 @@ def generate_data(num: int, max_speed: float):
         num: number of data points
         max_speed: final speed
     '''
+    if final_time is None:
+        final_time = num
+
+    print("Generating data...")
     data = np.zeros((num, 2))
-    times = list(range(num))
+    times = np.array(range(num))*final_time/num
     speeds = profile(num, max_speed)
     for i in range(num):
         data[i] = [times[i], speeds[i]]
 
+    print("Saving data...")
     np.savetxt("data.csv", data)
+    print("Finished!")
 
 if __name__ == '__main__':
-    generate_data(100, 5e7)
+    generate_data(100, 5e7, 1e-4)

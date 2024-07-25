@@ -125,11 +125,11 @@ def plot_trace(times: np.ndarray, wavelengths: np.ndarray):
             for j in range(int(2000/len(times))):
                 plot_arr[i, int(2000/len(times))*k + j] = fringes[i]
     plt.imshow(plot_arr, cmap = 'Greys', origin = 'lower')
-    ticks_x = [f"{tick:.0f}" for tick in gse(times)]
+    ticks_x = [f"{tick*1e6:.0f}" for tick in gse(times)]
     ticks_y = [f"{tick*1e9:.0f}" for tick in gse(xs)]
     plt.xticks(gse(np.arange(len(plot_arr[0]))), ticks_x)
     plt.yticks(gse(np.arange(len(plot_arr))), ticks_y)
-    plt.xlabel("Time [s]")
+    plt.xlabel("Time [ns]")
     plt.ylabel("Fringe positions [nm]")
     plt.show()
 
