@@ -32,6 +32,7 @@ def generate_data(num: int, max_speed: float, final_time: float = None):
     Args:
         num: number of data points
         max_speed: final speed
+        final_time: time for whole process to take place
     '''
     if final_time is None:
         final_time = num
