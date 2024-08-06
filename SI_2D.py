@@ -74,7 +74,7 @@ def plot_visar(intensities: np.ndarray):
     '''
     plt.figure()
     plt.title("2D VISAR simulation")
-    plt.imshow(intensities, cmap = "Grays")
+    plt.imshow(intensities, cmap = "Greys")
     plt.xlabel("x [mm]")
     plt.ylabel("y [mm]")
     plt.savefig("visar_2d.png", dpi = 1000)

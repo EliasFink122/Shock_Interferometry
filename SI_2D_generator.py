@@ -28,7 +28,7 @@ def profile(num: int, max_speed: float) -> np.ndarray:
             y = j-num/2
             phase = np.random.rand()*2*np.pi
             exp = np.log(max_speed/10) * np.sin(1/num*(np.sqrt(x**2 + y**2)))**2
-            modulation = np.exp(exp) * np.exp(1j*phase)
+            modulation = 1#np.exp(exp) * np.exp(1j*phase)
             ideal_beam = max_speed*np.exp(-((x**2 + y**2)/(2*(0.5*num)**2))**5)
             speeds[i, j] = np.abs(ideal_beam*modulation)
     return speeds
