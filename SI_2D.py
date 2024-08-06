@@ -17,6 +17,9 @@ Methods:
 """
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.animation as ani
+from multiprocessing import Pool
+from SI_2D_generator import time_evolving
 from scipy.constants import speed_of_light as c
 
 def read_in(path = "data2d.csv") -> np.array:
@@ -57,7 +60,6 @@ def transform(wavelengths: np.ndarray, refr_index = 1.33, length = 1) -> np.ndar
         refr_index: refractive index of medium in interferometer
         length: length of optical medium
 
-
     Returns:
         interferogram
     '''
@@ -80,8 +82,40 @@ def plot_visar(intensities: np.ndarray):
     plt.savefig("visar_2d.png", dpi = 1000)
     plt.show()
 
+def animate_visar(num: int, max_speed: float):
+    '''
+    Animate time evolution of shock front.
+
+    Args:
+        num: number of data points
+        max_speed: final speed
+    '''
+    print("Generating data...")
+    arrs = time_evolving(num, max_speed, timesteps = 500)
+
+    print("Animating...")
+    fig = plt.figure()
+
+    def plotting(i):
+        speeds = convert_doppler(5.5e-7, arrs[i])
+        intensities = transform(speeds)
+        image = plt.imshow(intensities, cmap = 'Greys')
+        return image
+
+    with Pool() as pool:
+        plots = pool.map(plotting, range(len(arrs)))
+
+    def animate(i):
+        return plots[i]
+
+    anim = ani.FuncAnimation(fig, animate, frames=len(arrs))
+    writergif = ani.PillowWriter(fps=30)
+    anim.save('animation.gif', writer=writergif)
+
 if __name__ == "__main__":
-    speed_arr = read_in()
-    wavelength_arr = convert_doppler(5.5e-7, speed_arr)
-    intensity_arr = transform(wavelength_arr)
-    plot_visar(intensity_arr)
+    # speed_arr = read_in()
+    # wavelength_arr = convert_doppler(5.5e-7, speed_arr)
+    # intensity_arr = transform(wavelength_arr)
+    # plot_visar(intensity_arr)
+
+    animate_visar(1000, 5e7)
