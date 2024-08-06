@@ -48,13 +48,40 @@ def convert_doppler(wavelength: float, speeds: np.ndarray) -> np.ndarray:
 
     return new_wavelengths
 
-def transform(wavelengths: np.ndarray) -> np.ndarray:
+def transform(wavelengths: np.ndarray, refr_index = 1.33, length = 1) -> np.ndarray:
     '''
-    Find interferogram by applying a Fourier transform with the Mach Zehnder geometry
+    Find Mach Zehnder interferogram
 
     Args:
         wavelengths: 2d array of wavelengths
+        refr_index: refractive index of medium in interferometer
+        length: length of optical medium
+
 
     Returns:
         interferogram
     '''
+    phases = (refr_index - 1)*2*np.pi*length/wavelengths
+    intensities = np.square(np.abs(np.exp(1j*phases) - 1))
+    return intensities
+
+def plot_visar(intensities: np.ndarray):
+    '''
+    Plot VISAR image.
+
+    Args:
+        intensities: intensities in 2D array
+    '''
+    plt.figure()
+    plt.title("2D VISAR simulation")
+    plt.imshow(intensities, cmap = "Grays")
+    plt.xlabel("x [mm]")
+    plt.ylabel("y [mm]")
+    plt.savefig("visar_2d.png", dpi = 1000)
+    plt.show()
+
+if __name__ == "__main__":
+    speed_arr = read_in()
+    wavelength_arr = convert_doppler(5.5e-7, speed_arr)
+    intensity_arr = transform(wavelength_arr)
+    plot_visar(intensity_arr)
